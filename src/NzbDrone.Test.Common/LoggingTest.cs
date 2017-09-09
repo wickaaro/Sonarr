@@ -25,13 +25,16 @@ namespace NzbDrone.Test.Common
                 LogManager.Configuration = new LoggingConfiguration();
 
                 // If the environment variable is set we know the caller wants to disable console logs and use a file logger instead.
-                if (Environment.GetEnvironmentVariable("SONARR_TESTS_NOCONSOLE").IsNullOrWhiteSpace())
+                var noConsole = false;
+                bool.TryParse(Environment.GetEnvironmentVariable("SONARR_TESTS_NOCONSOLE"), out noConsole);
+
+                if (noConsole)
                 {
-                    RegisterConsoleLogger();
+                    RegisterFileLogger();
                 }
                 else
                 {
-                    RegisterFileLogger();
+                    RegisterConsoleLogger();
                 }
 
                 RegisterExceptionVerification();
