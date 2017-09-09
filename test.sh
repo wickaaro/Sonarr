@@ -50,8 +50,6 @@ done
 $NUNIT_COMMAND --where "$WHERE" $NUNIT_PARAMS $ASSEMBLIES;
 EXIT_CODE=$?
 
-echo "##teamcity[publishArtifacts '$TEST_LOG_FILE']"
-
 if [ "$EXIT_CODE" -ge 0 ]; then
   echo "Failed tests: $EXIT_CODE"
   exit 0
