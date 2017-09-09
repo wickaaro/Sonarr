@@ -4,14 +4,20 @@ WHERE="cat != ManualTest"
 TEST_DIR="."
 TEST_PATTERN="*Test.dll"
 ASSEMBLIES=""
+TEST_LOG_FILE="TestLog.txt"
 
 if [ -d "$TEST_DIR/_tests" ]; then
   TEST_DIR="$TEST_DIR/_tests"
 fi
 
+rm -f "$TEST_LOG_FILE"
+
+# Uncomment to log test output to a file instead of the console
+# export SONARR_TESTS_NOCONSOLE="true"
+
 NUNIT="$TEST_DIR/NUnit.ConsoleRunner.3.2.0/tools/nunit3-console.exe"
 NUNIT_COMMAND="$NUNIT"
-NUNIT_PARAMS="--teamcity"
+NUNIT_PARAMS="--teamcity --workers=1"
 
 if [ "$PLATFORM" = "Windows" ]; then
   WHERE="$WHERE && cat != LINUX"
@@ -43,6 +49,8 @@ done
 
 $NUNIT_COMMAND --where "$WHERE" $NUNIT_PARAMS $ASSEMBLIES;
 EXIT_CODE=$?
+
+echo "##teamcity[publishArtifacts '$TEST_LOG_FILE']"
 
 if [ "$EXIT_CODE" -ge 0 ]; then
   echo "Failed tests: $EXIT_CODE"
