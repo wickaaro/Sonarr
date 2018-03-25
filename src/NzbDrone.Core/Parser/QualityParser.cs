@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,7 +16,7 @@ namespace NzbDrone.Core.Parser
 
         private static readonly Regex SourceRegex = new Regex(@"\b(?:
                                                                 (?<bluray>BluRay|Blu-Ray|HDDVD|BD)|
-                                                                (?<webdl>WEB[-_. ]DL|WEBDL|WebRip|AmazonHD|iTunesHD|NetflixU?HD|WebHD|[. ]WEB[. ](?:[xh]26[45]|DD5[. ]1)|\d+0p[. ]WEB[. ])|
+                                                                (?<webdl>WEB[-_. ]DL|WEBDL|WebRip|AmazonHD|iTunesHD|NetflixU?HD|WebHD|[. ]WEB[. ](?:[xh]26[45]|DD5[. ]1)|\d+0p[. ]WEB[. ]|WEB-DLMux)|
                                                                 (?<hdtv>HDTV)|
                                                                 (?<bdrip>BDRip)|
                                                                 (?<brrip>BRRip)|
@@ -57,6 +57,29 @@ namespace NzbDrone.Core.Parser
             Logger.Debug("Trying to parse quality for {0}", name);
 
             name = name.Trim();
+
+            var result = ParseQualityName(name);
+
+            //Based on extension
+            if (result.Quality == Quality.Unknown && !name.ContainsInvalidPathChars())
+            {
+                try
+                {
+                    result.Quality = MediaFileExtensions.GetQualityForExtension(Path.GetExtension(name));
+                    result.QualitySource = QualitySource.Extension;
+                }
+                catch (ArgumentException)
+                {
+                    //Swallow exception for cases where string contains illegal
+                    //path characters.
+                }
+            }
+
+            return result;
+        }
+
+        public static QualityModel ParseQualityName(string name)
+        {
             var normalizedName = name.Replace('_', ' ').Trim().ToLower();
             var result = ParseQualityModifiers(name, normalizedName);
 
@@ -190,6 +213,18 @@ namespace NzbDrone.Core.Parser
                     sourceMatch.Groups["dsr"].Success ||
                     sourceMatch.Groups["tvrip"].Success)
                 {
+                    if (resolution == Resolution.R1080p || normalizedName.Contains("1080p"))
+                    {
+                        result.Quality = Quality.HDTV1080p;
+                        return result;
+                    }
+
+                    if (resolution == Resolution.R720p || normalizedName.Contains("720p"))
+                    {
+                        result.Quality = Quality.HDTV720p;
+                        return result;
+                    }
+
                     if (HighDefPdtvRegex.IsMatch(normalizedName))
                     {
                         result.Quality = Quality.HDTV720p;
@@ -296,21 +331,6 @@ namespace NzbDrone.Core.Parser
             if (otherSourceMatch != Quality.Unknown)
             {
                 result.Quality = otherSourceMatch;
-            }
-
-            //Based on extension
-            if (result.Quality == Quality.Unknown && !name.ContainsInvalidPathChars())
-            {
-                try
-                {
-                    result.Quality = MediaFileExtensions.GetQualityForExtension(Path.GetExtension(name));
-                    result.QualitySource = QualitySource.Extension;
-                }
-                catch (ArgumentException)
-                {
-                    //Swallow exception for cases where string contains illegal
-                    //path characters.
-                }
             }
 
             return result;

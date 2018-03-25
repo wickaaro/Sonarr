@@ -25,7 +25,15 @@ namespace NzbDrone.Console
             try
             {
                 var startupArgs = new StartupContext(args);
-                NzbDroneLogger.Register(startupArgs, false, true);
+                try
+                {
+                    NzbDroneLogger.Register(startupArgs, false, true);
+                }
+                catch (Exception ex)
+                {
+                    System.Console.WriteLine("NLog Exception: " + ex.ToString());
+                    throw;
+                }
                 Bootstrap.Start(startupArgs, new ConsoleAlerts());
             }
             catch (SonarrStartupException ex)
@@ -57,7 +65,7 @@ namespace NzbDrone.Console
 
         private static void Exit(ExitCodes exitCode)
         {
-            LogManager.Flush();
+            LogManager.Shutdown();
 
             if (exitCode != ExitCodes.Normal)
             {
@@ -80,8 +88,6 @@ namespace NzbDrone.Console
                 System.Console.ReadLine();
             }
 
-            //Need this to terminate on mono (thanks nlog)
-            LogManager.Configuration = null;
             Environment.Exit((int)exitCode);
         }
     }

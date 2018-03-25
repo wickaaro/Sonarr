@@ -35,7 +35,7 @@ namespace NzbDrone.Core.Test.Housekeeping.Housekeepers
             Mocker.GetMock<IDownloadClientStatusRepository>()
                   .Verify(v => v.UpdateMany(
                           It.Is<List<DownloadClientStatus>>(i => i.All(
-                              s => s.DisabledTill.Value < DateTime.UtcNow.AddMinutes(disabledTillTime)))
+                              s => s.DisabledTill.Value <= DateTime.UtcNow.AddMinutes(disabledTillTime)))
                       )
                   );
         }
@@ -60,7 +60,7 @@ namespace NzbDrone.Core.Test.Housekeeping.Housekeepers
             Mocker.GetMock<IDownloadClientStatusRepository>()
                   .Verify(v => v.UpdateMany(
                           It.Is<List<DownloadClientStatus>>(i => i.All(
-                              s => s.InitialFailure.Value < DateTime.UtcNow))
+                              s => s.InitialFailure.Value <= DateTime.UtcNow))
                       )
                   );
         }
@@ -85,7 +85,7 @@ namespace NzbDrone.Core.Test.Housekeeping.Housekeepers
             Mocker.GetMock<IDownloadClientStatusRepository>()
                   .Verify(v => v.UpdateMany(
                           It.Is<List<DownloadClientStatus>>(i => i.All(
-                              s => s.MostRecentFailure.Value < DateTime.UtcNow))
+                              s => s.MostRecentFailure.Value <= DateTime.UtcNow))
                       )
                   );
         }

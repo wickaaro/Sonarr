@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,7 +12,7 @@ using NzbDrone.Core.Parser.Model;
 using NzbDrone.Core.Qualities;
 using NzbDrone.Core.Download;
 using NzbDrone.Core.Extras;
-
+using NzbDrone.Common.Exceptions;
 
 namespace NzbDrone.Core.MediaFiles.EpisodeImport
 {
@@ -117,10 +117,22 @@ namespace NzbDrone.Core.MediaFiles.EpisodeImport
 
                     if (newDownload)
                     {
-                        _extraService.ImportExtraFiles(localEpisode, episodeFile, copyOnly);
+                        _extraService.ImportEpisode(localEpisode, episodeFile, copyOnly);
                     }
 
                     _eventAggregator.PublishEvent(new EpisodeImportedEvent(localEpisode, episodeFile, oldFiles, newDownload, downloadClientItem));
+                }
+                catch (RootFolderNotFoundException e)
+                {
+                    _logger.Warn(e, "Couldn't import episode " + localEpisode);
+                    _eventAggregator.PublishEvent(new EpisodeImportFailedEvent(e, localEpisode, newDownload, downloadClientItem));
+
+                    importResults.Add(new ImportResult(importDecision, "Failed to import episode, Root folder missing."));
+                }
+                catch (DestinationAlreadyExistsException e)
+                {
+                    _logger.Warn(e, "Couldn't import episode " + localEpisode);
+                    importResults.Add(new ImportResult(importDecision, "Failed to import episode, Destination already exists."));
                 }
                 catch (Exception e)
                 {

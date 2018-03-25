@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -106,6 +106,12 @@ namespace NzbDrone.Core.Configuration
             set { SetValue("RssSyncInterval", value); }
         }
 
+        public int MaximumSize
+        {
+            get { return GetValueInt("MaximumSize", 0); }
+            set { SetValue("MaximumSize", value); }
+        }
+
         public int MinimumAge
         {
             get { return GetValueInt("MinimumAge", 0); }
@@ -153,6 +159,13 @@ namespace NzbDrone.Core.Configuration
             get { return GetValueBoolean("CreateEmptySeriesFolders", false); }
 
             set { SetValue("CreateEmptySeriesFolders", value); }
+        }
+
+        public bool DeleteEmptyFolders
+        {
+            get { return GetValueBoolean("DeleteEmptyFolders", false); }
+
+            set { SetValue("DeleteEmptyFolders", value); }
         }
 
         public FileDateType FileDate
